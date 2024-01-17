@@ -21,7 +21,10 @@ let ballSpeedY = 2;
 
 let leftPaddleSpeed = 0;
 let rightPaddleSpeed = 0;
-const paddleMoveSpeed = 4;
+const paddleMoveSpeed = 3;
+
+let scorePlayer1 = 0;
+let scorePlayer2 = 0;
 
 // Event listeners for key down and key up
 document.addEventListener('keydown', function(event) {
@@ -36,10 +39,18 @@ document.addEventListener('keyup', function(event) {
     if (event.key === 'ArrowUp' || event.key === 'ArrowDown') rightPaddleSpeed = 0;
 });
 
+function drawScore() {
+    ctx.font = '20px Arial';
+    ctx.fillText(`Player 1: ${scorePlayer1}`, 100, 30);
+    ctx.fillText(`Player 2: ${scorePlayer2}`, canvas.width - 200, 30);
+}
+
 // Game loop
 function gameLoop() {
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    drawScore();
     
     // Draw left paddle
     ctx.fillStyle = 'white';
@@ -85,12 +96,18 @@ function gameLoop() {
 
     // Ball passes paddle (scoring and reset)
     if (ballX < 0 || ballX > canvas.width) {
+
+        if (ballX < 0) {
+            scorePlayer2++;
+        } else if (ballX > canvas.width) {
+            scorePlayer1++;
+        }
         // Reset ball position and speed
         ballX = canvas.width / 2;
         ballY = canvas.height / 2;
         ballSpeedX = 2;
         ballSpeedY = 2;
-        // Update score here (not implemented yet)
+        
     }
 
     // Request next frame
