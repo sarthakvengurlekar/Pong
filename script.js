@@ -108,7 +108,7 @@ function gameLoop() {
         ballSpeedX = 2;
         ballSpeedY = 2;
         
-        
+
     }
 
     // Request next frame
