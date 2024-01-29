@@ -72,6 +72,20 @@ function gameLoop() {
     leftPaddleY += leftPaddleSpeed;
     rightPaddleY += rightPaddleSpeed;
 
+    // Prevent left paddle from going off the screen
+    if (leftPaddleY < 0) {
+        leftPaddleY = 0;
+    } else if (leftPaddleY + paddleHeight > canvas.height) {
+        leftPaddleY = canvas.height - paddleHeight;
+    }
+
+    // Prevent right paddle from going off the screen
+    if (rightPaddleY < 0) {
+        rightPaddleY = 0;
+    } else if (rightPaddleY + paddleHeight > canvas.height) {
+        rightPaddleY = canvas.height - paddleHeight;
+    }
+
     if (ballY - ballSize < 0 || ballY + ballSize > canvas.height) {
         ballSpeedY = -ballSpeedY;
     }
