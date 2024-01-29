@@ -26,6 +26,23 @@ const paddleMoveSpeed = 3;
 let scorePlayer1 = 0;
 let scorePlayer2 = 0;
 
+let gameMode = null; // "AI" or "Versus"
+let gameStarted = false;
+
+document.getElementById('playAI').addEventListener('click', function() {
+    gameMode = 'AI';
+    gameStarted = true;
+    document.getElementById('startScreen').style.display = 'none';
+    gameLoop();
+});
+
+document.getElementById('playVersus').addEventListener('click', function() {
+    gameMode = 'Versus';
+    gameStarted = true;
+    document.getElementById('startScreen').style.display = 'none';
+    gameLoop();
+});
+
 // Event listeners for key down and key up
 document.addEventListener('keydown', function(event) {
     if (event.key === 'w') leftPaddleSpeed = -paddleMoveSpeed;
@@ -67,6 +84,17 @@ function gameLoop() {
     // Update ball position
     ballX += ballSpeedX;
     ballY += ballSpeedY;
+
+    if (gameMode === 'AI') {
+        let paddleCenter = rightPaddleY + paddleHeight / 2;
+        if (ballY > paddleCenter + paddleMoveSpeed) {
+            rightPaddleSpeed = paddleMoveSpeed;
+        } else if (ballY < paddleCenter - paddleMoveSpeed) {
+            rightPaddleSpeed = -paddleMoveSpeed;
+        } else {
+            rightPaddleSpeed = 0;
+        }
+    }
 
     //Update paddle positions
     leftPaddleY += leftPaddleSpeed;
@@ -130,4 +158,4 @@ function gameLoop() {
 }
 
 // Start game
-gameLoop();
+//gameLoop();
