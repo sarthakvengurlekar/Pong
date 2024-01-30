@@ -22,6 +22,7 @@ let ballSpeedY = 2;
 let leftPaddleSpeed = 0;
 let rightPaddleSpeed = 0;
 const paddleMoveSpeed = 3;
+const aiPaddleMoveSpeed = 1;
 
 let scorePlayer1 = 0;
 let scorePlayer2 = 0;
@@ -87,10 +88,10 @@ function gameLoop() {
 
     if (gameMode === 'AI') {
         let paddleCenter = rightPaddleY + paddleHeight / 2;
-        if (ballY > paddleCenter + paddleMoveSpeed) {
-            rightPaddleSpeed = paddleMoveSpeed;
-        } else if (ballY < paddleCenter - paddleMoveSpeed) {
-            rightPaddleSpeed = -paddleMoveSpeed;
+        if (ballY > paddleCenter + aiPaddleMoveSpeed) {
+            rightPaddleSpeed = aiPaddleMoveSpeed;
+        } else if (ballY < paddleCenter - aiPaddleMoveSpeed) {
+            rightPaddleSpeed = -aiPaddleMoveSpeed;
         } else {
             rightPaddleSpeed = 0;
         }
@@ -144,11 +145,13 @@ function gameLoop() {
         } else if (ballX > canvas.width) {
             scorePlayer1++;
         }
-        // Reset ball position and speed
+        // Randomize ball spawn position
         ballX = canvas.width / 2;
-        ballY = canvas.height / 2;
-        ballSpeedX = 2;
-        ballSpeedY = 2;
+        ballY = Math.random() * (canvas.height - ballSize * 2) + ballSize;
+
+        // Randomize ball direction
+        ballSpeedX = (Math.random() > 0.5 ? 1 : -1) * 2;
+        ballSpeedY = (Math.random() * 4 - 2); // Random speed between -2 and 2
         
 
     }
