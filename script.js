@@ -27,6 +27,8 @@ const aiPaddleMoveSpeed = 1;
 let scorePlayer1 = 0;
 let scorePlayer2 = 0;
 
+const scoreLimit = 7;
+
 let gameMode = null; // "AI" or "Versus"
 let gameStarted = false;
 
@@ -142,8 +144,16 @@ function gameLoop() {
 
         if (ballX < 0) {
             scorePlayer2++;
+            if(scorePlayer2 >= scoreLimit){
+                endGame('Player 2 wins!');
+                return; //Stop game loop
+            }
         } else if (ballX > canvas.width) {
             scorePlayer1++;
+            if(scorePlayer1 >= scoreLimit){
+                endGame('Player 1 wins!');
+                return;
+            }
         }
         // Randomize ball spawn position
         ballX = canvas.width / 2;
@@ -159,6 +169,49 @@ function gameLoop() {
     // Request next frame
     requestAnimationFrame(gameLoop);
 }
+
+function endGame(winnerMessage) {
+    // Hiding the canvas to prevent further interaction
+    canvas.style.display = 'none';
+
+    // Creating a victory message element
+    let victoryMessage = document.createElement('div');
+    victoryMessage.id = 'victoryMessage';
+    victoryMessage.textContent = winnerMessage;
+
+    // Adding a restart button
+    let restartButton = document.createElement('button');
+    restartButton.textContent = 'Restart';
+    restartButton.addEventListener('click', function() {
+        document.location.reload(); // Reloads the page to restart the game
+    });
+
+    // Append the victory message and restart button to the body
+    document.body.appendChild(victoryMessage);
+    document.body.appendChild(restartButton);
+}
+
+// Reset game state
+function resetGame() {
+    scorePlayer1 = 0;
+    scorePlayer2 = 0;
+    gameStarted = true;
+    document.getElementById('startScreen').style.display = 'none';
+    
+}
+
+document.getElementById('playAI').addEventListener('click', function() {
+    resetGame();
+    gameMode = 'AI';
+    gameLoop();
+});
+
+document.getElementById('playVersus').addEventListener('click', function() {
+    resetGame();
+    gameMode = 'Versus';
+    gameLoop();
+});
+
 
 // Start game
 //gameLoop();

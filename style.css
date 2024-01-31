@@ -19,6 +19,17 @@ canvas {
     text-align: center;
 }
 
+#victoryMessage {
+    position: absolute;
+    top: 40%; /* Adjust as needed */
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 30px;
+    color: white;
+    text-align: center;
+    z-index: 1000; /* Ensures it appears above other elements */
+}
+
 button {
     display: block;
     margin: 10px auto;
