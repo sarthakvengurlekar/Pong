@@ -16,35 +16,44 @@ let leftPaddleY = canvas.height / 2 - paddleHeight / 2;
 let rightPaddleY = canvas.height / 2 - paddleHeight / 2;
 let ballX = canvas.width / 2;
 let ballY = canvas.height / 2;
-let ballSpeedX = 2;
-let ballSpeedY = 2;
+let ballSpeedX = 8;
+let ballSpeedY = 8;
 
 let leftPaddleSpeed = 0;
 let rightPaddleSpeed = 0;
-const paddleMoveSpeed = 3;
-const aiPaddleMoveSpeed = 1;
+const paddleMoveSpeed = 6;
+const aiPaddleMoveSpeed = 3;
 
 let scorePlayer1 = 0;
 let scorePlayer2 = 0;
 
 const scoreLimit = 7;
 
-let gameMode = null; // "AI" or "Versus"
-let gameStarted = false;
+let lastTime = 0;
+const timeStep = 1000 / 60; // 60 updates per second
+
+let gameMode = null;
+let gameStarted = false; // "AI" or "Versus"
+let gameRunning = false; // Flag to control game loop
 
 document.getElementById('playAI').addEventListener('click', function() {
-    gameMode = 'AI';
-    gameStarted = true;
-    document.getElementById('startScreen').style.display = 'none';
-    gameLoop();
+    startGame('AI');
 });
 
 document.getElementById('playVersus').addEventListener('click', function() {
-    gameMode = 'Versus';
-    gameStarted = true;
-    document.getElementById('startScreen').style.display = 'none';
-    gameLoop();
+    startGame('Versus');
 });
+
+// Function to start the game
+function startGame(mode) {
+    if (!gameStarted) {
+        gameMode = mode;
+        gameStarted = true;
+        gameRunning = true;
+        document.getElementById('startScreen').style.display = 'none';
+        requestAnimationFrame(gameLoop);
+    }
+}
 
 // Event listeners for key down and key up
 document.addEventListener('keydown', function(event) {
@@ -66,23 +75,22 @@ function drawScore() {
 }
 
 // Game loop
-function gameLoop() {
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+function gameLoop(timestamp) {
 
-    drawScore();
-    
-    // Draw left paddle
-    ctx.fillStyle = 'white';
-    ctx.fillRect(0, leftPaddleY, paddleWidth, paddleHeight);
-    
-    // Draw right paddle
-    ctx.fillRect(canvas.width - paddleWidth, rightPaddleY, paddleWidth, paddleHeight);
-    
-    // Draw ball
-    ctx.beginPath();
-    ctx.arc(ballX, ballY, ballSize, 0, Math.PI * 2);
-    ctx.fill();
+    if (!gameRunning) return; // Stop the game loop if gameRunning is false
+
+    let deltaTime = timestamp - lastTime;
+    if (deltaTime >= timeStep) {
+        lastTime = timestamp - (deltaTime % timeStep);
+        updateGame();
+    }
+
+    drawEverything();
+    requestAnimationFrame(gameLoop);
+
+}
+
+function updateGame(){
 
     // Update ball position
     ballX += ballSpeedX;
@@ -142,35 +150,52 @@ function gameLoop() {
     // Ball passes paddle (scoring and reset)
     if (ballX < 0 || ballX > canvas.width) {
 
-        if (ballX < 0) {
-            scorePlayer2++;
-            if(scorePlayer2 >= scoreLimit){
-                endGame('Player 2 wins!');
-                return; //Stop game loop
-            }
-        } else if (ballX > canvas.width) {
-            scorePlayer1++;
-            if(scorePlayer1 >= scoreLimit){
-                endGame('Player 1 wins!');
-                return;
-            }
+        // Increment score
+        if (ballX < 0) scorePlayer2++;
+        else scorePlayer1++;
+
+        // Check for game end
+        if(scorePlayer1 >= scoreLimit || scorePlayer2 >= scoreLimit){
+            endGame(scorePlayer1 >= scoreLimit ? 'Player 1 wins!' : 'Player 2 wins!');
+            return;
         }
-        // Randomize ball spawn position
+        // Reset ball position and speed
         ballX = canvas.width / 2;
         ballY = Math.random() * (canvas.height - ballSize * 2) + ballSize;
-
-        // Randomize ball direction
-        ballSpeedX = (Math.random() > 0.5 ? 1 : -1) * 2;
-        ballSpeedY = (Math.random() * 4 - 2); // Random speed between -2 and 2
+        ballSpeedY = 8 * (Math.random() > 0.5 ? 1 : -1); 
+        ballSpeedX = 8 * (Math.random() > 0.5 ? 1 : -1); 
         
+        // Ensure the game loop doesn't stop prematurely
+        if (gameMode === null) {
+        return;
+        }
 
     }
+    
+}
 
-    // Request next frame
-    requestAnimationFrame(gameLoop);
+function drawEverything(){
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    drawScore();
+    
+    // Draw left paddle
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, leftPaddleY, paddleWidth, paddleHeight);
+    
+    // Draw right paddle
+    ctx.fillRect(canvas.width - paddleWidth, rightPaddleY, paddleWidth, paddleHeight);
+    
+    // Draw ball
+    ctx.beginPath();
+    ctx.arc(ballX, ballY, ballSize, 0, Math.PI * 2);
+    ctx.fill();
 }
 
 function endGame(winnerMessage) {
+
+    gameRunning = false; // Stop the game loop
     // Hiding the canvas to prevent further interaction
     canvas.style.display = 'none';
 
@@ -196,20 +221,32 @@ function resetGame() {
     scorePlayer1 = 0;
     scorePlayer2 = 0;
     gameStarted = true;
+    leftPaddleY = canvas.height / 2 - paddleHeight / 2;
+    rightPaddleY = canvas.height / 2 - paddleHeight / 2;
+    ballX = canvas.width / 2;
+    ballY = canvas.height / 2;
+    ballSpeedX = 8;
+    ballSpeedY = 8;
     document.getElementById('startScreen').style.display = 'none';
     
 }
 
 document.getElementById('playAI').addEventListener('click', function() {
-    resetGame();
-    gameMode = 'AI';
-    gameLoop();
+    if (!gameStarted) {
+        resetGame();
+        gameMode = 'AI';
+        gameRunning = true;
+        gameLoop();
+    }
 });
 
 document.getElementById('playVersus').addEventListener('click', function() {
-    resetGame();
-    gameMode = 'Versus';
-    gameLoop();
+    if (!gameStarted) {
+        resetGame();
+        gameMode = 'Versus';
+        gameRunning = true;
+        gameLoop();
+    }
 });
 
 
