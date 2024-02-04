@@ -27,6 +27,8 @@ const aiPaddleMoveSpeed = 3;
 let scorePlayer1 = 0;
 let scorePlayer2 = 0;
 
+let lastScorer = null;
+
 const scoreLimit = 7;
 
 let lastTime = 0;
@@ -68,6 +70,20 @@ document.addEventListener('keyup', function(event) {
     if (event.key === 'ArrowUp' || event.key === 'ArrowDown') rightPaddleSpeed = 0;
 });
 
+document.addEventListener('keydown', function(event) {
+    if (event.key === ' ' || event.key === 'Spacebar') { // Checking for both possible key values
+        console.log("Space bar pressed"); // Debugging statement
+        if (lastScorer === 'Player1') {
+            ballSpeedX = 8;
+            ballX += paddleWidth + ballSize; // Move the ball slightly to avoid sticking
+        } else {
+            ballSpeedX = -8;
+            ballX -= paddleWidth + ballSize; // Move the ball slightly to avoid sticking
+        }
+        ballSpeedY = 8 * (Math.random() > 0.5 ? 1 : -1);
+    }
+});
+
 function drawScore() {
     ctx.font = '20px Arial';
     ctx.fillText(`Player 1: ${scorePlayer1}`, 100, 30);
@@ -92,6 +108,7 @@ function gameLoop(timestamp) {
 
 function updateGame(){
 
+    if (ballSpeedX === 0 && ballSpeedY === 0) return;
     // Update ball position
     ballX += ballSpeedX;
     ballY += ballSpeedY;
@@ -151,8 +168,13 @@ function updateGame(){
     if (ballX < 0 || ballX > canvas.width) {
 
         // Increment score
-        if (ballX < 0) scorePlayer2++;
-        else scorePlayer1++;
+        if (ballX < 0) {
+            scorePlayer2++;
+            lastScorer = 'Player2';
+        } else {
+            scorePlayer1++;
+            lastScorer = 'Player1';
+        }
 
         // Check for game end
         if(scorePlayer1 >= scoreLimit || scorePlayer2 >= scoreLimit){
@@ -160,10 +182,14 @@ function updateGame(){
             return;
         }
         // Reset ball position and speed
-        ballX = canvas.width / 2;
-        ballY = Math.random() * (canvas.height - ballSize * 2) + ballSize;
-        ballSpeedY = 8 * (Math.random() > 0.5 ? 1 : -1); 
-        ballSpeedX = 8 * (Math.random() > 0.5 ? 1 : -1); 
+        ballY = canvas.height / 2;
+        if (lastScorer === 'Player1') {
+            ballX = paddleWidth + ballSize;
+        } else {
+            ballX = canvas.width - paddleWidth - ballSize;
+        }
+        ballSpeedX = 0; // Set to 0 initially
+        ballSpeedY = 0;
         
         // Ensure the game loop doesn't stop prematurely
         if (gameMode === null) {
