@@ -46,16 +46,6 @@ document.getElementById('playVersus').addEventListener('click', function() {
     startGame('Versus');
 });
 
-// Function to start the game
-function startGame(mode) {
-    if (!gameStarted) {
-        gameMode = mode;
-        gameStarted = true;
-        gameRunning = true;
-        document.getElementById('startScreen').style.display = 'none';
-        requestAnimationFrame(gameLoop);
-    }
-}
 
 // Event listeners for key down and key up
 document.addEventListener('keydown', function(event) {
@@ -84,6 +74,30 @@ document.addEventListener('keydown', function(event) {
     }
 });
 
+//Release ball
+document.addEventListener('keydown', function(event) {
+    if (event.key === ' ' || event.key === 'Spacebar') {
+        if (lastScorer === 'Player1' || lastScorer === null) {
+            ballSpeedX = 8;
+        } else {
+            ballSpeedX = -8;
+        }
+        ballSpeedY = 8 * (Math.random() > 0.5 ? 1 : -1);
+    }
+});
+
+// Function to start the game
+function startGame(mode) {
+    resetBall();
+    if (!gameStarted) {
+        gameMode = mode;
+        gameStarted = true;
+        gameRunning = true;
+        document.getElementById('startScreen').style.display = 'none';
+        requestAnimationFrame(gameLoop);
+    }
+}
+
 function drawScore() {
     ctx.font = '20px Arial';
     ctx.fillText(`Player 1: ${scorePlayer1}`, 100, 30);
@@ -107,6 +121,27 @@ function gameLoop(timestamp) {
 }
 
 function updateGame(){
+
+    // Move paddles
+    leftPaddleY += leftPaddleSpeed;
+    rightPaddleY += rightPaddleSpeed;
+
+    // Keep paddles within the canvas bounds
+    leftPaddleY = Math.max(Math.min(leftPaddleY, canvas.height - paddleHeight), 0);
+    rightPaddleY = Math.max(Math.min(rightPaddleY, canvas.height - paddleHeight), 0);
+
+
+    if (ballSpeedX === 0 && ballSpeedY === 0) {
+        // Ball is attached to the paddle
+        if (lastScorer === 'Player1' || lastScorer === null) {
+            ballX = paddleWidth + ballSize;
+            ballY = leftPaddleY + paddleHeight / 2;
+        } else {
+            ballX = canvas.width - paddleWidth - ballSize;
+            ballY = rightPaddleY + paddleHeight / 2;
+        }
+        return; // Skip the rest of the update logic
+    }
 
     if (ballSpeedX === 0 && ballSpeedY === 0) return;
     // Update ball position
@@ -171,25 +206,27 @@ function updateGame(){
         if (ballX < 0) {
             scorePlayer2++;
             lastScorer = 'Player2';
+            if(gameMode === 'AI') {
+                autoReleaseBall(); // Automatically release the ball if AI scores
+            }
         } else {
             scorePlayer1++;
             lastScorer = 'Player1';
+            resetBall(); // Reset ball position and speed for manual release
         }
+
+        // Reset paddles
+        leftPaddleY = canvas.height / 2 - paddleHeight / 2;
+        rightPaddleY = canvas.height / 2 - paddleHeight / 2;
+
+        // Reset ball position and speed
+        resetBall();
 
         // Check for game end
         if(scorePlayer1 >= scoreLimit || scorePlayer2 >= scoreLimit){
             endGame(scorePlayer1 >= scoreLimit ? 'Player 1 wins!' : 'Player 2 wins!');
             return;
         }
-        // Reset ball position and speed
-        ballY = canvas.height / 2;
-        if (lastScorer === 'Player1') {
-            ballX = paddleWidth + ballSize;
-        } else {
-            ballX = canvas.width - paddleWidth - ballSize;
-        }
-        ballSpeedX = 0; // Set to 0 initially
-        ballSpeedY = 0;
         
         // Ensure the game loop doesn't stop prematurely
         if (gameMode === null) {
@@ -198,6 +235,16 @@ function updateGame(){
 
     }
     
+}
+
+function autoReleaseBall() {
+    setTimeout(function() {
+        // Position ball at a random position on AI's side
+        ballY = Math.random() * (canvas.height - ballSize * 2) + ballSize;
+        ballX = canvas.width - paddleWidth - ballSize;
+        ballSpeedX = -8; // Set speed towards the player
+        ballSpeedY = 8 * (Math.random() > 0.5 ? 1 : -1); // Random vertical speed
+    }, 2000); // Delay of 2 seconds
 }
 
 function drawEverything(){
@@ -217,6 +264,18 @@ function drawEverything(){
     ctx.beginPath();
     ctx.arc(ballX, ballY, ballSize, 0, Math.PI * 2);
     ctx.fill();
+}
+
+//Reset ball to center of the paddle
+function resetBall() {
+    ballY = canvas.height / 2;
+    if (lastScorer === 'Player1' || lastScorer === null) {
+        ballX = paddleWidth + ballSize;
+    } else {
+        ballX = canvas.width - paddleWidth - ballSize;
+    }
+    ballSpeedX = 0;
+    ballSpeedY = 0;
 }
 
 function endGame(winnerMessage) {
